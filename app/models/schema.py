@@ -163,7 +163,7 @@ class VideoParams(BaseModel):
     font_size: int = Field(default=60, ge=1)
     stroke_color: Optional[str] = "#000000"
     stroke_width: float = Field(default=1.5, ge=0, allow_inf_nan=False)
-    n_threads: Optional[int] = 2
+    n_threads: Optional[int] = 1
     paragraph_number: int = Field(default=1, ge=1, le=10)
     video_script_prompt: str = Field(default="", max_length=2000)
     custom_system_prompt: str = Field(default="", max_length=8000)
@@ -265,7 +265,7 @@ class TaskVideoRequest(VideoParams, BaseModel):
     # FFmpeg thread controls in VideoParams unchanged.
     video_count: int = Field(default=1, ge=1, le=5)
     video_clip_duration: int = Field(default=5, ge=1, le=15)
-    n_threads: Optional[int] = Field(default=2, ge=1, le=16)
+    n_threads: Optional[int] = Field(default=1, ge=1, le=16)
 
     # A request without voice_name uses the same Edge voice as /audio and
     # /subtitle. Edge TTS accepts no empty voice, so with the empty default
