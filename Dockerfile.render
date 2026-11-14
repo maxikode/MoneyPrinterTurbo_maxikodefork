@@ -1,0 +1,30 @@
+# Render-specific image. The upstream Dockerfile remains unchanged.
+FROM python:3.11-slim
+
+WORKDIR /MoneyPrinterTurbo
+ENV PYTHONPATH="/MoneyPrinterTurbo" \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1 \
+    TOKENIZERS_PARALLELISM=false
+
+# Install only runtime tools; skip apt upgrade and recommended packages to reduce
+# image build time and size on constrained hosting.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements-render.txt requirements-security.txt ./
+COPY --from=ghcr.io/astral-sh/uv:0.12.12 /uv /usr/local/bin/uv
+RUN uv pip install --system --no-cache --overrides requirements-security.txt \
+    -r requirements-render.txt \
+    'setuptools>=82.0.1' 'wheel>=0.46.2'
+
+COPY . .
+
+# Render assigns the listening port through PORT at runtime.
+EXPOSE 10000
+CMD ["sh", "-c", "streamlit run ./webui/Main.py --server.address=0.0.0.0 --server.port=${PORT:-10000} --server.headless=true --server.enableCORS=false --browser.gatherUsageStats=false --server.fileWatcherType=none --logger.hideWelcomeMessage=true"]
